@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 // MAZE PROC GEN LAB
@@ -16,23 +17,75 @@ public class Pathmaker : MonoBehaviour {
 
 //	DECLARE CLASS MEMBER VARIABLES:
 //	Declare a private integer called counter that starts at 0; 		// counter var will track how many floor tiles I've instantiated
+	private int counter = 0;
 //	Declare a public Transform called floorPrefab, assign the prefab in inspector;
+	public GameObject floorPrefab;
 //	Declare a public Transform called pathmakerSpherePrefab, assign the prefab in inspector; 		// you'll have to make a "pathmakerSphere" prefab later
+	public GameObject pathmakerSpherePrefab;
 
+	public GameObject pathGod;
+
+	public float lifeTime = 0;
+	public float turnProb = 0;
+
+	private void Awake()
+	{
+		pathGod = GameObject.FindWithTag("PathGod");
+	}
 
 	void Update () {
 //		If counter is less than 50, then:
+		if (counter < lifeTime)
+		{
 //			Generate a random number from 0.0f to 1.0f;
 //			If random number is less than 0.25f, then rotate myself 90 degrees;
 //				... Else if number is 0.25f-0.5f, then rotate myself -90 degrees;
 //				... Else if number is 0.99f-1.0f, then instantiate a pathmakerSpherePrefab clone at my current position;
 //			// end elseIf
+			
+			float randNum = Random.Range(0.0f, 1.0f);
+
+			if (randNum < turnProb)
+			{
+				this.transform.Rotate(90f, 0, 0);
+			}
+			else if (randNum >= turnProb && randNum < turnProb * 2)
+			{
+				this.transform.Rotate(-90f, 0, 0);
+			}
+			else if (randNum >= .98f && randNum < 1.0f)
+			{
+				GameObject newPathmakerSphere = (GameObject)Instantiate(pathmakerSpherePrefab, this.transform.position, this.transform.rotation);
+				pathGod.GetComponent<pathGodScript>().pathSpheres.Add(newPathmakerSphere);
+			}
 
 //			Instantiate a floorPrefab clone at current position;
 //			Move forward ("forward", as in, the direction I'm currently facing) by 5 units;
+			
+			GameObject newFloorTile = (GameObject)Instantiate(floorPrefab, this.transform.position, Quaternion.Euler(0f, 0f, 90f));
+			pathGod.GetComponent<pathGodScript>().floorTiles.Add(newFloorTile);
+			
+			transform.Translate(Vector3.up * 5);
+
 //			Increment counter;
+
+			counter++;
+			pathGod.GetComponent<pathGodScript>().globalCounter++;
+		}
+
 //		Else:
 //			Destroy my game object; 		// self destruct if I've made enough tiles already
+
+		else
+		{
+			Destroy(this.gameObject);
+			pathGod.GetComponent<pathGodScript>().pathSpheres.Remove(this.gameObject);
+		}
+			
+
+
+
+
 	}
 
 } // end of class scope
